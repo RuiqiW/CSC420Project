@@ -1,6 +1,8 @@
 import pandas as pd
 from torch.utils.data import DataLoader
 import torch
+import numpy as np
+import torchvision.transforms as tt
 
 from vgg16 import VGG16
 from datasets import InferenceDataset, GDataset
@@ -19,7 +21,7 @@ def train_model(index, dir_, model_file="",
         @param model_save_name: name of the saving model file
     """
     
-    df = pd.read_csv(index).sample(frac=0.5)
+    df = pd.read_csv(index).sample(frac=0.1)
     dataset = GDataset(df, dir_)
     
     batch_size = 108
@@ -72,12 +74,11 @@ def inference(index, dir_, model_file):
         @param dir_: directory name that stores the properly formatted data
         @param model_file: model state file for continuous training
     """
-    df = pd.read_csv(index).sample(frac=0.5)
+    df = pd.read_csv(index)
     dataset = InferenceDataset(df, dir_)
-
-    batch_size = 32
-    dataloader = DataLoader(dataset, batch_size=batch_size)
-
+    
+    train_df = pd.read_csv("train_try.csv")
+    
     model = VGG16()
     model.load_state_dict(torch.load(model_file))
     model.cuda()
@@ -85,25 +86,29 @@ def inference(index, dir_, model_file):
 
     criterion = torch.nn.CrossEntropyLoss()
     softmax = torch.nn.Softmax(dim=1)
+    transform = tt.Compose([
+            tt.Resize((128, 128)),
+            tt.ToTensor(),
+            tt.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
 
     loss_sum = 0
     accuracy = 0
     top_5_accuracy = 0
     counter = 0
-    for x, t in dataloader:
+    for x, t_cpu in dataset:
         counter += 1
-        print(round(counter / len(valid_loader) * 100, 2), "%  ", end="\r")
-        x, t = x.cuda(), t.cuda()
+        x_cpu = np.array(x)
+        x, t = transform(x).unsqueeze(0).cuda(), t_cpu.unsqueeze(0).cuda()
         z = model(x)
-        loss = criterion(z, t)
-        loss_sum += loss.item()
-
         y = softmax(z)
         top_p, top_class = y.topk(5, dim=1)
         accuracy += (top_class[:, 0] == t).sum().item()
         top_5_accuracy += (top_class == t.unsqueeze(1).repeat(1, 5)).max(axis=1).values.sum().item()
+        
+        top_class_cpu = top_class.detach().cpu().numpy().flatten()
+            
 
-    print("Loss:", loss_sum / len(dataloader))
     print("Top 1 Accuracy:", accuracy / len(dataset))
     print("Top 5 accuracy:", top_5_accuracy / len(dataset))
     
@@ -115,5 +120,8 @@ if __name__ == "__main__":
     index = sys.argv[1]
     dir_ = sys.argv[2]
     model_file = sys.argv[3] if sys.argv[3] else ""
-    # inference(sys.argv[1], sys.argv[2], sys.argv[3])
-    train_model(index, dir_, model_file=model_file, epochs=32, model_save=False)
+    inference(sys.argv[1], sys.argv[2], sys.argv[3])
+    # train_model(index, dir_, model_file=model_file, epochs=32, model_save=False)
+
+
+
