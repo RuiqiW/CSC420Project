@@ -74,7 +74,7 @@ def randBrightness(image):
 
 
 
-def block(image, scale=0.1, p=0.1):
+def randBlock(image, scale=0.1, p=0.1):
 
     width, height=image.size
     w, h = int(scale*width), int(scale*height)
@@ -86,16 +86,16 @@ def block(image, scale=0.1, p=0.1):
     return blocked
 
 
-
 def random_augmentation(image):
     choice = np.random.choice(5)
     if choice == 0:
         image = randFlip(image)
-    elif choie == 1:
+    elif choice == 1:
         image = rotate90(image)
     elif choice == 2:
         image = randPerspective(image)
     elif choice == 3:
         image = randBrightness(image)
     else:
-        image = randblock(image)
+        image = randBlock(image)
+    return image
