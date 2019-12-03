@@ -1,3 +1,4 @@
+
 #### Initializing the data set index file 
 Download the trainig index file from Google's landmark dataset v2. https://s3.amazonaws.com/google-landmark/metadata/train.csv  
 You can also check their repo for more information (https://github.com/cvdfoundation/google-landmark).
@@ -47,3 +48,4 @@ class_sample refers to `sample.csv` generated, class_folder will be `train`. For
 Since thresh mode only uses models, it can run by just downloading the model file. 
 
 Our own test set is provided (https://drive.google.com/open?id=13FgCRmQJkfzD9PJ8H6ez39Wehqmx-ZNM), while the training set is too large to store. our test set index file is `testset.csv` in github repo.
+
