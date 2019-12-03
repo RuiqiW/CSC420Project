@@ -74,7 +74,7 @@ def randBrightness(image):
 
 
 
-def block(image, scale=0.1, p=0.1):
+def randBlock(image, scale=0.1, p=0.1):
 
     width, height=image.size
     w, h = int(scale*width), int(scale*height)
@@ -90,7 +90,7 @@ def block(image, scale=0.1, p=0.1):
 def random_augmentation(image):
     choice = np.random.choice(3)
     if choice == 0:
-        image = randblock(image)
+        image = randBlock(image)
     elif choice == 1:
         image = randCrop(image)
     else:
