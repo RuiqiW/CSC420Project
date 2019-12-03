@@ -77,8 +77,6 @@ def inference(index, dir_, model_file):
     df = pd.read_csv(index)
     dataset = InferenceDataset(df, dir_)
     
-    train_df = pd.read_csv("train_try.csv")
-    
     model = VGG16()
     model.load_state_dict(torch.load(model_file))
     model.cuda()
@@ -105,23 +103,23 @@ def inference(index, dir_, model_file):
         top_p, top_class = y.topk(5, dim=1)
         accuracy += (top_class[:, 0] == t).sum().item()
         top_5_accuracy += (top_class == t.unsqueeze(1).repeat(1, 5)).max(axis=1).values.sum().item()
-        
-        top_class_cpu = top_class.detach().cpu().numpy().flatten()
-            
-
+    
     print("Top 1 Accuracy:", accuracy / len(dataset))
     print("Top 5 accuracy:", top_5_accuracy / len(dataset))
     
 if __name__ == "__main__":
-    print("Loading dataset:", sys.argv[1])
+    print("Loading dataset:", sys.argv[2])
     print("Dataset folder:", sys.argv[3])
-    print("Model:", sys.argv[2])
+    print("Model:", sys.argv[4])
+    mode = sys.argv[1]
+    index = sys.argv[2]
+    dir_ = sys.argv[3]
+    model_file = sys.argv[4] if sys.argv[4] else ""
+    if mode == "inference":
+        inference(index, dir_, model_file)
+    elif mode == "train":
+        train_model(index, dir_, model_file=model_file, epochs=32, model_save=True)
     
-    index = sys.argv[1]
-    dir_ = sys.argv[2]
-    model_file = sys.argv[3] if sys.argv[3] else ""
-    inference(sys.argv[1], sys.argv[2], sys.argv[3])
-    # train_model(index, dir_, model_file=model_file, epochs=32, model_save=False)
 
 
 

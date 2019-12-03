@@ -10,13 +10,13 @@ from datasets import InferenceDataset, GDataset
 import sys, time
 from ransac_matching import *
 
+import argparse
+
 def test_hard_thresholding(index, dir_, model_file):
     start = time.time()
 
     df = pd.read_csv(index)
     dataset = InferenceDataset(df, dir_)
-
-    train_df = pd.read_csv("train_try.csv")
 
     model = VGG16()
     model.load_state_dict(torch.load(model_file))
@@ -41,8 +41,10 @@ def test_hard_thresholding(index, dir_, model_file):
         top_p, top_class = y.topk(1, dim=1)
         if top_p[:, 0].item() < 0.45:
             accuracy += t_cpu.item() == 1000
+            print(t_cpu.item(), 1000)
         else:
             accuracy += (top_class[:, 0] == t).sum().item()
+            print(t_cpu.item(), top_class[:, 0].item())
 
     print("Top 1 Accuracy:", accuracy / len(dataset))
     end = time.time()
@@ -50,7 +52,7 @@ def test_hard_thresholding(index, dir_, model_file):
     
     
     
-def test_ransac_surf(index, dir_, model_file):
+def test_ransac_surf(index, dir_, model_file, class_sample, class_folder):
     start = time.time()
     
     df = pd.read_csv(index)
@@ -67,11 +69,9 @@ def test_ransac_surf(index, dir_, model_file):
             tt.ToTensor(),
             tt.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
+    test_index = pd.read_csv(class_sample)
     counter = 0
-    test_index = pd.read_csv("train_try.csv")
-    # dict_kps, dict_des = prepare_features(test_index)
     for row in df.iterrows():
-        print(counter, end="\r")
         id_ = row[1]['id']
         img_name = "/".join([dir_, id_+".jpg"])
         image = Image.open(img_name).convert('RGB')
@@ -81,25 +81,21 @@ def test_ransac_surf(index, dir_, model_file):
         y = softmax(z)
         top_p, top_class = y.topk(5, dim=1)
         if top_p[0, 0].item() > 0.75:
+            print(top_class[0, 0].item())
             counter += top_class[0, 0].item() == row[1]['class_id']
         else:
             top_class = randsac_matching_metrics(top_class[0].tolist(), 
                                                            img_name, 
                                                            test_index, 
-                                                           "index")
-#             top_class = randsac_matching_metrics_thresholding(top_class[0].tolist(), 
-#                                                               img_name, 
-#                                                               test_index, 
-#                                                               "index", 
-#                                                               dict_kp,
-#                                                               dict_des)
+                                                           class_folder)
+            print(top_class)
             counter += top_class == row[1]['class_id']
     print("Accuracy:", counter / len(df))
     end = time.time()
     print("Time:", end - start)
     
     
-def query_image(img_name, dir_, model_file):
+def query_image(img_name, model_file, class_sample, class_folder, mode):
     start = time.time()
     
     model = VGG16()
@@ -114,31 +110,60 @@ def query_image(img_name, dir_, model_file):
             tt.ToTensor(),
             tt.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
-    test_index = pd.read_csv("test_index.csv")
+    if mode == "query":
+        test_index = pd.read_csv(class_sample)
     image = Image.open(img_name).convert('RGB')
     x = transform(image).unsqueeze(0).cuda()
     z = model(x)
     y = softmax(z)
     top_p, top_class = y.topk(5, dim=1)
-    if top_p[0, 0].item() > 0.75:
-        top_class = top_class[0, 0].item()
+    if mode == "query_thresh":
+        if top_p[0, 0].item() > 0.45:
+            top_class = top_class[0, 0].item()
+        else:
+            top_class = 1000
     else:
-        top_class = randsac_matching_metrics(top_class[0].tolist(), 
-                                             img_name, 
-                                             test_index, 
-                                             "index")
+        if top_p[0, 0].item() > 0.75:
+            top_class = top_class[0, 0].item()
+        else:
+            top_class = randsac_matching_metrics(top_class[0].tolist(), 
+                                                 img_name, 
+                                                 test_index, 
+                                                 class_folder)
     print("Prediction", top_class)
     end = time.time()
     print("Time:", end - start)
     
     
 if __name__ == "__main__":
-    print("Loading dataset:", sys.argv[1])
-    print("Dataset folder:", sys.argv[3])
-    print("Model:", sys.argv[2])
+    
+    parser = argparse.ArgumentParser(description='Run test set or query image.')
+    parser.add_argument('mode', help='choose the task among [thresh | ransac | query]')
+    parser.add_argument('dataset', metavar='d', help='path to the dataset index csv file or the path to the query image')
+    parser.add_argument('folder', metavar='f', help='path to the dataset folder')
+    parser.add_argument('model', metavar='m', help='path to the model state dict')
+    parser.add_argument('class_sample', help='path to the class sampling csv file')
+    parser.add_argument('class_folder', help='path to the class sampling folder')
+    
+    args = parser.parse_args()
+  
+    
 
-    index = sys.argv[1]
-    dir_ = sys.argv[2]
-    model_file = sys.argv[3] if sys.argv[3] else ""
-    test_ransac_surf(sys.argv[1], sys.argv[2], sys.argv[3])
-    #query_image(sys.argv[1], sys.argv[2], sys.argv[3])
+    index = args.dataset
+    dir_ = args.folder
+    model_file = args.model
+    
+    print("Loading dataset:", index)
+    print("Dataset folder:", dir_)
+    print("Model:", model_file)
+    
+    if args.mode == "thresh":
+        test_hard_thresholding(index, dir_, model_file)
+    elif args.mode == "ransac" and args.class_sample and args.class_folder: 
+        test_ransac_surf(index, dir_, model_file, args.class_sample, args.class_folder)
+    elif args.mode == "query" and args.class_sample and args.class_folder:
+        query_image(index, model_file, args.class_sample, args.class_folder, args.mode)
+    elif args.mode == "query_thresh":
+        query_image(index, model_file, "", "", args.mode)
+    
+

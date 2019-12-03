@@ -1,3 +1,9 @@
+# ThIS CODE ARE NOT WRITTEN BY OURSELVES
+# it comes from 
+# https://www.kaggle.com/sermakarevich/download-resize-clean-12-hours-44gb
+# with some modification to fit our purpose
+# Run this code to 
+
 import logging 
 import math
 import os
@@ -150,7 +156,7 @@ def download_resize_clean(index):
             resize_folder_images(
                 src_dir=images_folder, 
                 dst_dir='train',
-                size=256
+                size=720
             )
             os.system(f'rm -r {images_folder}')
             os.system(f'rm {images_file_name}')
@@ -160,11 +166,13 @@ def download_resize_clean(index):
     except:
         logger.error(f'FAILED TO PROCESS {images_file_name}')
         
-logger = create_logger('download.log')
-indexes = []
-with open("index.txt") as f:
-    for line in f:
-        indexes.append(line[:-1] + ".jpg")
-p = Pool(processes=10)
-p.map(download_resize_clean, range(500))
-p.close()
+if __name__ == "__main__":
+    
+    logger = create_logger('download.log')
+    indexes = []
+    with open(sys.argv[1]) as f:
+        for line in f:
+            indexes.append(line[:-1] + ".jpg")
+    p = Pool(processes=10)
+    p.map(download_resize_clean, range(500))
+    p.close()

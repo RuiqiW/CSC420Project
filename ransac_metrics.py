@@ -14,7 +14,7 @@ def computeTrials(inNum, total_samples, num_samples, threshRatio):
 
 
 def ransac_affine(loc1, loc2, dist_threshold,
-           max_trials=1000, threshInNum=np.inf, threshLoss=0, threshRatio=0.99):
+           max_trials=300, threshInNum=np.inf, threshLoss=0, threshRatio=0.99):
 
     best_mat = None
     best_inliers = None

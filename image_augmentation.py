@@ -66,7 +66,7 @@ def randCrop(image, scale_range=(0.3, 0.5)):
 
 
 def randBrightness(image):
-    brightness = np.random.uniform(0.5, 1.5)
+    brightness = np.random.uniform(0.7, 1.3)
     jitter = brightness * np.array(image).astype(np.float32)
     jitter = np.clip(jitter, 0, 255).astype(np.uint8)
     jittered = Image.fromarray(jitter)
@@ -74,7 +74,7 @@ def randBrightness(image):
 
 
 
-def randBlock(image, scale=0.1, p=0.1):
+def block(image, scale=0.1, p=0.1):
 
     width, height=image.size
     w, h = int(scale*width), int(scale*height)
@@ -86,16 +86,14 @@ def randBlock(image, scale=0.1, p=0.1):
     return blocked
 
 
+
 def random_augmentation(image):
-    choice = np.random.choice(5)
+    choice = np.random.choice(3)
     if choice == 0:
-        image = randFlip(image)
+        image = randblock(image)
     elif choice == 1:
-        image = rotate90(image)
-    elif choice == 2:
-        image = randPerspective(image)
-    elif choice == 3:
-        image = randBrightness(image)
+        image = randCrop(image)
     else:
-        image = randBlock(image)
-    return image
+        image = randBrightness(image)
+    return Image.fromarray(image)
+        
