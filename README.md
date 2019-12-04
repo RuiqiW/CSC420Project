@@ -52,7 +52,7 @@ Our own test set is provided (https://drive.google.com/open?id=13FgCRmQJkfzD9PJ8
 -------------------------------------------------------------------------------------
 #### Vocabulary Tree (not used in pipeline)  
 
-Train: create a folder: vocab_model in the same directory as vocab_tree.py (used to store models), then run    
+Train: create a folder: vocab_model in the same directory as vocab_tree.py (used to store models), then run the following script to construct a vocabulary tree.    
 
        vocab_tree.py --train_dir=[path to directory of training images] --num_clusters=[number of clusters for kmeans] 
        --perform_pca=[whether to perform PCA on extracted feature descriptors]
@@ -61,4 +61,4 @@ Test: run
 
       vocab_tree_predict.py --image_path=[path to query image] --top_k=[# of matched candidates to select]  
       
-   Return the index of candidate images in the training directory
+   Will return the index of candidate images in the training directory.
