@@ -8,6 +8,10 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.externals import joblib
 
+"""
+    Reference: Lecture 16 slides
+"""
+
 
 def train_vocab_tree(image_dir, num_clusters=10, perform_pca=False):
     image_paths = [image_dir + i for i in os.listdir(image_dir)]
@@ -19,7 +23,7 @@ def train_vocab_tree(image_dir, num_clusters=10, perform_pca=False):
         surf = cv2.xfeatures2d.SURF_create()
         kp, des = surf.detectAndCompute(image, None)
         for row in range(des.shape[0]):
-            des[row] = des[row] / np.linalg.norm(des[row])
+            des[row] = des[row] / (np.linalg.norm(des[row]) + 1e-7)
         des_list.append((path, des))
 
     data_size = len(des_list)
@@ -33,14 +37,14 @@ def train_vocab_tree(image_dir, num_clusters=10, perform_pca=False):
         pca = PCA(n_components=40)
         pca.fit(descriptors)
         reduced_descriptors = pca.transform(descriptors)
-        joblib.dump(pca, 'pca_model.joblib')
+        joblib.dump(pca, './vocab_model/pca_model.joblib')
     else:
         reduced_descriptors = descriptors
 
     # Cluster the descriptors from the images in the database
     kmeans = KMeans(init='k-means++', n_clusters=num_clusters, n_init=10)
     kmeans.fit(reduced_descriptors)
-    joblib.dump(kmeans, 'kmeans_model.joblib')
+    joblib.dump(kmeans, './vocab_model/kmeans_model.joblib')
 
     # code_book = kmeans.cluster_centers_
 
@@ -79,12 +83,16 @@ def train_vocab_tree(image_dir, num_clusters=10, perform_pca=False):
 
 if __name__ == '__main__':
     image_dir, num_clusters, perform_pca = sys.argv[1:]
+    num_clusters = int(num_clusters)
     idf, weighted_features, inverted_file_index = train_vocab_tree(image_dir, num_clusters, perform_pca)
 
-    model_dict = {}
+    model_dict={}
+    model_dict['num_clusters'] = num_clusters
+    model_dict['perform_pca'] = perform_pca
     model_dict['idf'] = idf
     model_dict['weighted_features'] = weighted_features
     model_dict['inverted_file_index'] = inverted_file_index
 
-    pickle.dump(model_dict, 'vocab_tree_model.pkl')
+    with open('./vocab_model/vocab_tree_model.pkl', 'wb') as output:
+        pickle.dump(model_dict, output)
 

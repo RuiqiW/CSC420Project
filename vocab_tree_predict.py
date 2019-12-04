@@ -36,7 +36,7 @@ def get_candidates(query_image):
 # vectors. Sort (highest to lowest). Take top K most similar images
 def getTopCandidates(top_k, query_features, candidates):
     queryIdf = idf * query_features
-    queryIdf /= np.linalg.norm(queryIdf)
+    queryIdf /= (np.linalg.norm(queryIdf) + 1e-7)
 
     # take candidate features
     candidate_features = weighted_features[candidates]
@@ -48,17 +48,20 @@ def getTopCandidates(top_k, query_features, candidates):
 
 
 if __name__ == '__main__':
-    image_path, num_clusters, perform_pca, top_k = sys.argv[1:]
+    image_path, top_k = sys.argv[1:]
+    top_k = int(top_k)
 
-    kmeans = joblib.load('kmeans_model.joblib')
-    pca = joblib.load('pca_model.joblib')
+    kmeans = joblib.load('./vocab_model/kmeans_model.joblib')
+    pca = joblib.load('./vocab_model/pca_model.joblib')
 
-    model = pickle.load('vocab_tree_model.pkl')
+    with open('./vocab_model/vocab_tree_model.pkl', 'rb') as input_file:
+        model = pickle.load(input_file)
 
+    num_clusters = model['num_clusters']
+    perform_pca = model['perform_pca']
     idf = model['idf']
     weighted_features = model['weighted_features']
     inverted_file_index = model['inverted_file_index']
-
 
     query_image = cv2.imread(image_path)
     # candidates: image index of candidates
