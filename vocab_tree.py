@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import os
 import sys
+import argparse
 import pickle
 
 from sklearn.cluster import KMeans
@@ -10,6 +11,7 @@ from sklearn.externals import joblib
 
 """
     Reference: Lecture 16 slides
+    Package used: sklearn PCA, KMeans
 """
 
 
@@ -82,8 +84,17 @@ def train_vocab_tree(image_dir, num_clusters=10, perform_pca=False):
 
 
 if __name__ == '__main__':
-    image_dir, num_clusters, perform_pca = sys.argv[1:]
-    num_clusters = int(num_clusters)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--train_dir", type=str)
+    parser.add_argument("--num_clusters", type=int, default=10)
+    parser.add_argument("--perform_pca", type=bool, default=False)
+    args = parser.parse_args()
+
+    image_dir = args.train_dir
+    num_clusters = args.num_clusters
+    perform_pca = args.perform_pca
+
     idf, weighted_features, inverted_file_index = train_vocab_tree(image_dir, num_clusters, perform_pca)
 
     model_dict={}
