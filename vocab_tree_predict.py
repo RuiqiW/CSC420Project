@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import os
 import sys
+import argparse
 import pickle
 
 from sklearn.cluster import KMeans
@@ -48,8 +49,13 @@ def getTopCandidates(top_k, query_features, candidates):
 
 
 if __name__ == '__main__':
-    image_path, top_k = sys.argv[1:]
-    top_k = int(top_k)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--image_path", type=str)
+    parser.add_argument("--top_k", type=int, default=1)
+    args = parser.parse_args()
+
+    image_path = args.image_path
+    top_k = args.top_k
 
     kmeans = joblib.load('./vocab_model/kmeans_model.joblib')
     pca = joblib.load('./vocab_model/pca_model.joblib')
