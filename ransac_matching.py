@@ -49,8 +49,8 @@ def randsac_matching_metrics(top_class, x_name, df, dir_):
             loc1 = np.array([ kp1[matches[i].queryIdx].pt for i in range(num)])
             loc2 = np.array([ kp2[matches[i].trainIdx].pt for i in range(num)])
             bestInNum = ransac_affine(loc1, loc2, dist_threshold=4, threshRatio=0.99)
-            match_counts[i_class] += bestInNum > 10
-    if max(match_counts) < 10:
+            match_counts[i_class] += bestInNum > 20
+    if max(match_counts) < 8:
         return 1000
     return top_class[0] # top_class[match_counts.argmax()]
             
@@ -81,7 +81,7 @@ def randsac_matching_metrics_thresholding(top_class, x_name, df, dir_, dict_kp, 
             loc2 = np.array([ kp2[matches[i].trainIdx].pt for i in range(num)])
             bestInNum = ransac_affine(loc1, loc2, dist_threshold=2, threshRatio=0.99)
             match_counts[i_class] += bestInNum > 20
-    if max(match_counts) < 12:
+    if max(match_counts) < 8:
         return 1000
     return top_class[0]
         
