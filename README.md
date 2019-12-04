@@ -54,8 +54,7 @@ Our own test set is provided (https://drive.google.com/open?id=13FgCRmQJkfzD9PJ8
 
 Train: create a folder: vocab_model in the same directory as vocab_tree.py (used to store models), then run    
 
-       vocab_tree.py --train_dir=[path to directory of training images] 
-       --num_clusters=[number of clusters for kmeans] 
+       vocab_tree.py --train_dir=[path to directory of training images] --num_clusters=[number of clusters for kmeans] 
        --perform_pca=[whether to perform PCA on extracted feature descriptors]
        
 Test: run  
