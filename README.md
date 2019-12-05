@@ -50,7 +50,7 @@ Since thresh mode only uses models, it can run by just downloading the model fil
 Our own test set is provided (https://drive.google.com/open?id=13FgCRmQJkfzD9PJ8H6ez39Wehqmx-ZNM), while the training set is too large to store. our test set index file is `testset.csv` in github repo.
 
 -------------------------------------------------------------------------------------
-#### Bag of Visual Words (not used in pipeline)  
+#### Bag of Visual Words (for vocabulary tree, not used in pipeline)  
 
 Train: create a folder: vocab_model in the same directory as vocab_train.py (used to store models), then run the following script to construct a bag of visual words.    
 
